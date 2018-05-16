@@ -90,4 +90,65 @@ class triuneJRS extends MY_Controller {
         $this->load->view('bamjrs/requestNewVerification', $data);
 
 	}
+
+	public function ICTCreateRequest() {
+		$this->load->view('ictjrs/create');
+	}
+	
+	public function ICTCreateRequestConfirmation() {
+		$data['requestDescription'] = $_POST["requestDescription"];
+		$data['jobClassification'] = $_POST["jobClassification"];
+		$data['dateNeeded'] = $_POST["dateNeeded"];
+	
+	
+		$this->load->view('ictjrs/createConfirmation', $data);
+	}
+	
+	public function ICTCreatedRequest() {
+		$data['ID'] = $_POST["ID"];
+		$this->load->view('ictjrs/createdRequest', $data);
+	}
+	
+	public function ICTMyRequestList() {
+        $this->load->view('ictjrs/listMyRequest');
+	}
+
+	public function ICTNewRequestList() {
+		$data['requestStatus'] = 'N';
+        $this->load->view('ictjrs/listRequest', $data);
+	}
+
+	public function ICTNewRequestVerification() {
+
+		$data['ID'] = $_POST["ID"];
+
+		$results = $this->_getRecordsData($rec = array('*'), 
+		$tables = array('triune_job_request_transaction_ict'), 
+		$fieldName = array('ID'), $where = array($data['ID']), 
+		$join = null, $joinType = null, $sortBy = null, $sortOrder = null, 
+		$limit = null, 	$fieldNameLike = null, $like = null, $whereSpecial = null, 
+		$groupBy = null );
+
+
+		$data['requestDescription'] = $results[0]->requestDescription;
+		$data['jobClassification'] = $results[0]->jobClassification;
+		$data['dateNeeded'] = $results[0]->dateNeeded;
+		$data['dateCreated'] = $results[0]->dateCreated;
+		$data['requestStatus'] = $results[0]->requestStatus;
+
+		$results1 = $this->_getRecordsData($rec = array('*'), 
+		$tables = array('triune_job_request_transaction_ict_attachments'), 
+		$fieldName = array('requestNumber'), $where = array($data['ID']), 
+		$join = null, $joinType = null, $sortBy = null, $sortOrder = null, 
+		$limit = null, 	$fieldNameLike = null, $like = null, $whereSpecial = null, 
+		$groupBy = null );
+		
+		$data['attachments'] = $results1;
+		$data['requestStatusDescription'] = $this->_getRequestStatusDescription($data['requestStatus'], 'ICT');
+
+        $this->load->view('ictjrs/requestNewVerification', $data);
+
+	}
 }
+
+

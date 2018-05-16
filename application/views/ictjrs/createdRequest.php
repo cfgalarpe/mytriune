@@ -24,4 +24,3 @@
 </div>
 
 <script src="<?php echo base_url();?>assets/scripts/triuneictjrscreated.js"></script>
-

@@ -1,0 +1,2 @@
+INSERT INTO triune_job_request_transaction_bam VALUES (196, 'SSC', '3', 'SSC-306', 'Test', 'Test', 'Hello', 'N', '2018-05-17', '2018-05-15', 'jtsy', '::1', '2018-05-15 09:21:42');
+INSERT INTO triune_job_request_transaction_bam VALUES (197, 'SSC', '3', 'SSC-306', 'Test', 'Test', 'Hello World', 'N', '2018-05-18', '2018-05-15', 'jtsy', '::1', '2018-05-15 10:43:13');

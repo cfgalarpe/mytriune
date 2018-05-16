@@ -365,7 +365,272 @@ class triuneData extends MY_Controller {
 			echo json_encode($result);
 	}
 
+	public function getjobClassification() {
+		$results = $this->_getRecordsData($data = array('jobClassification'), 
+			$tables = array('triune_job_classification_ict'), $fieldName = null, $where = null, $join = null, $joinType = null, 
+			$sortBy = array('ID'), $sortOrder = array('asc'), $limit = null, 
+			$fieldNameLike = null, $like = null, 
+			$whereSpecial = null, $groupBy = null );
 
+			echo json_encode($results);
+	}
 
+	public function setRequestICT() {
+
+		$this->form_validation->set_rules('requestDescription', 'Request Description', 'required');    
+		$this->form_validation->set_rules('jobClassification', 'Job Classification', 'required');  
+		$this->form_validation->set_rules('dateNeeded', 'Date Needed', 'required|regex_match[/\d{4}\-\d{2}-\d{2}/]');    
+	
+		$requestDescription = $_POST["requestDescription"];
+		$jobClassification = $_POST["jobClassification"];
+		$dateNeeded = $_POST["dateNeeded"];
+	
+		$this->session->set_flashdata('requestDescription', $requestDescription);
+		$this->session->set_flashdata('jobClassification', $jobClassification);
+		$this->session->set_flashdata('dateNeeded', $dateNeeded);
+	
+	
+		if ($this->form_validation->run() == FALSE) {   
+			echo json_encode($this->form_validation->error_array());
+		}else{    
+	
+			$resultsJobC = $this->_getRecordsData($data = array('jobClassification'), 
+			$tables = array('triune_job_classification_ict'), $fieldName = array('jobClassification'), $where = array($jobClassification), 
+			$join = null, $joinType = null, $sortBy = null, $sortOrder = null, 
+			$limit = null, 	$fieldNameLike = null, $like = null, $whereSpecial = null, $groupBy = null );
+	
+			$notExistMessage = array();
+			if(empty($resultsJobC)) {
+				$notExistMessage["jobClassificationNotExist"] = "No reference for job classification in the database!";
+			} 
+			
+			if(count($notExistMessage) > 0) {
+				echo json_encode($notExistMessage);
+			} elseif(count($notExistMessage) == 0) {
+	
+					$returnValue = array();
+					
+					$returnValue['requestDescription'] = $requestDescription;
+					$returnValue['jobClassification'] = $jobClassification;
+					$returnValue['dateNeeded'] = $dateNeeded;
+	
+	
+					$returnValue['success'] = 1;
+					echo json_encode($returnValue);
+				//}
+			}
+			
+		}	
+	
+	}
+	
+		public function insertRequestICT() {
+			$requestDescription = $_POST["requestDescription"];
+			$jobClassification = $_POST["jobClassification"];
+			$dateNeeded = $_POST["dateNeeded"];
+			
+			$userName = $this->_getUserName(1);
+	
+			$transactionExist = $this->_getRecordsData($data = array('requestDescription'), 
+			$tables = array('triune_job_request_transaction_ict'), 
+			$fieldName = array('requestDescription', 'jobClassification', 'userName', 'dateNeeded'), 
+			$where = array($requestDescription, $jobClassification, $userName, $dateNeeded), 
+			$join = null, $joinType = null, $sortBy = null, $sortOrder = null, 
+			$limit = null, 	$fieldNameLike = null, $like = null, $whereSpecial = null, $groupBy = null );
+			
+	
+			if(empty($transactionExist)) {
+	
+				$systemForAuditName = "ICTJRS";
+				$moduleName = "Create Request";
+	
+				$insertData1 = null;
+				$insertData1 = array(
+					'requestDescription' => $requestDescription,
+					'jobClassification' => $jobClassification,
+					'userName' => $userName,
+					'dateNeeded' => $dateNeeded,
+					'dateCreated' => $this->_getCurrentDate(),
+					'requestStatus' => $this->_getRequestStatus('NEW', 'ICT'),
+					'workstationID' => $this->_getIPAddress(),
+					'timeStamp' => $this->_getTimeStamp(),
+				);				 
+	
+				$this->db->trans_start();
+					$this->_insertRecords($tableName = 'triune_job_request_transaction_ict', $insertData1);        			 
+	
+					$insertedRecord1 = $this->_getRecordsData($data = array('ID'), 
+					$tables = array('triune_job_request_transaction_ict'), 
+					$fieldName = array('requestDescription', 'jobClassification', 'userName', 'dateNeeded'), 
+					$where = array($requestDescription, $jobClassification, $userName, $dateNeeded), 
+					$join = null, $joinType = null, $sortBy = null, $sortOrder = null, 
+					$limit = null, 	$fieldNameLike = null, $like = null, $whereSpecial = null, $groupBy = null );
+	
+					$actionName1 = "Insert New Transaction Request";
+					$for1 = $insertedRecord1[0]->ID . ";" . $userName;
+					$oldValue1 = null;
+					$newValue1 =  $insertData1;
+					$this->_insertAuditTrail($actionName1, $systemForAuditName, $moduleName, $for1, $oldValue1, $newValue1);		
+	
+	
+				$insertData2 = null;
+				$insertData2 = array(
+					'requestNumber' =>$insertedRecord1[0]->ID,
+					'requestStatus' => $this->_getRequestStatus('NEW', 'ICT'),
+					'userName' => $userName,
+					'workstationID' => $this->_getIPAddress(),
+					'timeStamp' => $this->_getTimeStamp(),
+				);				 
+	
+					$this->_insertRecords($tableName = 'triune_job_request_transaction_ict_status_history', $insertData2);        			 
+	
+					$insertedRecord2 = $this->_getRecordsData($data = array('ID'), 
+					$tables = array('triune_job_request_transaction_ict_status_history'), 
+					$fieldName = array('requestNumber', 'requestStatus', 'userName'), 
+					$where = array($insertedRecord1[0]->ID, $this->_getRequestStatus('NEW', 'ICT'), $userName), 
+					$join = null, $joinType = null, $sortBy = null, $sortOrder = null, 
+					$limit = null, 	$fieldNameLike = null, $like = null, $whereSpecial = null, $groupBy = null );
+	
+					$actionName2 = "Insert New Transaction Request Status History";
+					$for2 = $insertedRecord2[0]->ID . ";" .$userName;
+					$oldValue2 = null;
+					$newValue2 =  $insertData2;
+					$this->_insertAuditTrail($actionName2, $systemForAuditName, $moduleName, $for2, $oldValue2, $newValue2);		
+	
+				$this->db->trans_complete();
+			
+				$fileName1 = "triune_job_request_transaction_ict-" . $this->_getCurrentDate();
+				$text1 = "INSERT INTO triune_job_request_transaction_ict ";
+				$text1 = $text1 .  "VALUES (" .  $insertedRecord1[0]->ID . ", ";
+				$text1 = $text1 .  "'".$requestDescription . "', ";
+				$text1 = $text1 .  "'".$jobClassification . "', ";
+				$text1 = $text1 .  "'".$userName . "', ";
+				$text1 = $text1 .  "'".$dateNeeded . "', ";
+				$text1 = $text1 .  "'".$this->_getCurrentDate() . "', ";
+				$text1 = $text1 .  "'".$this->_getRequestStatus('NEW', 'ICT') . "', ";
+				$text1 = $text1 .  "'".$this->_getIPAddress() . "', ";
+				$text1 = $text1 .  "'".$this->_getTimeStamp();
+				$text1 = $text1 . "');";
+				$this->_insertTextLog($fileName1, $text1);
+	
+				$fileName2 = "triune_job_request_transaction_ict_status_history-" . $this->_getCurrentDate();
+				$text2 = "INSERT INTO triune_job_request_transaction_ict_status_history ";
+				$text2 = $text2 .  "VALUES (" .  $insertedRecord2[0]->ID . ", ";
+				$text2 = $text2 .  "'".$insertedRecord1[0]->ID . "', ";
+				$text2 = $text2 .  "'".$this->_getRequestStatus('NEW', 'ICT') . "', ";
+				$text2 = $text2 .  "'".$userName . "', ";
+				$text2 = $text2 .  "'".$this->_getIPAddress() . "', ";
+				$text2 = $text2 .  "'".$this->_getTimeStamp();
+				$text2 = $text2 . "');";
+				$this->_insertTextLog($fileName2, $text2);
+				
+	
+				if($this->db->trans_status() === FALSE) {
+					$this->_transactionFailed();
+					return FALSE;  
+				} 
+	
+				$returnValue = array();
+				$returnValue['ID'] = $insertedRecord1[0]->ID;
+				$returnValue['success'] = 1;
+				echo json_encode($returnValue);
+	
+			} //if(empty($transactionExist))
+	
+		}
+	
+	
+		public function getICTJRSMyRequestList() {
+			$post = $this->input->post();  
+			$clean = $this->security->xss_clean($post);
+			
+			$page = isset($clean['page']) ? intval($clean['page']) : 1;
+			$rows = isset($clean['rows']) ? intval($clean['rows']) : 10;
+			$ID = isset($clean['ID']) ? $clean['ID'] : '';
+			$jobClassification = isset($clean['jobClassification']) ? $clean['jobClassification'] : '';
+			$userName = $this->_getUserName(1);
+			
+			$offset = ($page-1)*$rows;
+			$result = array();
+			$whereSpcl = "triune_job_request_transaction_ict.userName = '$userName' and triune_job_request_transaction_ict.ID like '$ID%' and triune_job_request_transaction_ict.jobClassification like '$jobClassification%'";
+		
+	
+	
+			$results = $this->_getRecordsData($data = array('count(*) as totalRecs'), 
+				$tables = array('triune_job_request_transaction_ict'), $fieldName = null, $where = null, $join = null, $joinType = null, 
+				$sortBy = null, $sortOrder = null, $limit = null, 
+				$fieldNameLike = null, $like = null, 
+				$whereSpecial = array($whereSpcl), $groupBy = null );
+	
+				//$row = mysql_fetch_row($results);
+				$result["total"] = intval($results[0]->totalRecs);
+	
+				$results = $this->_getRecordsData($data = array('triune_job_request_transaction_ict.*', 'triune_request_status_reference.requestStatusDescription'), 
+				$tables = array('triune_job_request_transaction_ict', 'triune_request_status_reference'), 
+				$fieldName = array('triune_request_status_reference.application'), $where = array('ICT'), 
+				$join = array('triune_job_request_transaction_ict.requestStatus = triune_request_status_reference.requestStatusCode'), 
+				$joinType = array('left'), 
+				$sortBy = array('triune_job_request_transaction_ict.ID'), $sortOrder = array('desc'), 
+				$limit = array($rows, $offset), 
+				$fieldNameLike = null, $like = null, 
+				$whereSpecial = array($whereSpcl), $groupBy = null );
+				
+				//$items = array();
+				//while($row = mysql_fetch_object($results)){
+				//	array_push($items, $row);
+				//}
+				$result["rows"] = $results;
+	
+				$result["ID"] = $ID;
+				$result["jobClassification"] = $jobClassification;
+	
+	
+				echo json_encode($result);
+		}
+	
+	
+	
+		public function getICTJRSRequestList() {
+			$post = $this->input->post();  
+			$clean = $this->security->xss_clean($post);
+			
+			$page = isset($clean['page']) ? intval($clean['page']) : 1;
+			$rows = isset($clean['rows']) ? intval($clean['rows']) : 10;
+			$ID = isset($clean['ID']) ? $clean['ID'] : '';
+			$jobClassification = isset($clean['jobClassification']) ? $clean['jobClassification'] : '';
+			$requestStatus = isset($clean['requestStatus']) ? $clean['requestStatus'] : '';
+			$offset = ($page-1)*$rows;
+			$result = array();
+			$whereSpcl = "triune_job_request_transaction_ict.requestStatus = '$requestStatus' and triune_job_request_transaction_ict.ID like '$ID%' and triune_job_request_transaction_ict.jobClassification like '$jobClassification%'";
+		
+	
+	
+			$results = $this->_getRecordsData($data = array('count(*) as totalRecs'), 
+				$tables = array('triune_job_request_transaction_ict'), $fieldName = null, $where = null, $join = null, $joinType = null, 
+				$sortBy = null, $sortOrder = null, $limit = null, 
+				$fieldNameLike = null, $like = null, 
+				$whereSpecial = array($whereSpcl), $groupBy = null );
+	
+				//$row = mysql_fetch_row($results);
+				$result["total"] = intval($results[0]->totalRecs);
+	
+				$results = $this->_getRecordsData($data = array('triune_job_request_transaction_ict.*', 'triune_request_status_reference.requestStatusDescription'), 
+				$tables = array('triune_job_request_transaction_ict', 'triune_request_status_reference'), 
+				$fieldName = array('triune_request_status_reference.application'), $where = array('ICT'), 
+				$join = array('triune_job_request_transaction_ict.requestStatus = triune_request_status_reference.requestStatusCode'), 
+				$joinType = array('left'), 
+				$sortBy = array('triune_job_request_transaction_ict.ID'), $sortOrder = array('desc'), 
+				$limit = array($rows, $offset), 
+				$fieldNameLike = null, $like = null, 
+				$whereSpecial = array($whereSpcl), $groupBy = null );
+				
+				$result["rows"] = $results;
+	
+				$result["ID"] = $ID;
+				$result["jobClassification"] = $jobClassification;
+	
+	
+				echo json_encode($result);
+		}
 
 }

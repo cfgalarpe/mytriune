@@ -58,13 +58,14 @@ $route['auth/forgot'] = 'triuneAuth/forgotPassword';
 $route['auth/hello'] = 'triuneAuth/index';
 $route['main'] = 'triuneAuth/mainView';
 $route['main/jobRequest'] = 'triuneMain/jobRequest';
+
+/***** BAM ROUTES *****/
 $route['bamjrs/create'] = 'triuneJRS/BAMCreateRequest';
 $route['bamjrs/getCreateConfirmation'] = 'triuneJRS/BAMCreateRequestConfirmation';
 $route['bamjrs/getCreatedRequest'] = 'triuneJRS/BAMCreatedRequest';
 $route['bamjrs/getMyRequestList'] = 'triuneJRS/BAMMyRequestList';
 $route['bamjrs/getNewRequestList'] = 'triuneJRS/BAMNewRequestList';
 $route['bamjrs/getNewRequestVerification'] = 'triuneJRS/BAMNewRequestVerification';
-
 
 $route['getLocationCode'] = 'triuneData/getLocationCode'; 
 $route['getFloor'] = 'triuneData/getFloor'; 
@@ -76,6 +77,21 @@ $route['setRequestBAM'] = 'triuneData/setRequestBAM';
 $route['insertRequestBAM'] = 'triuneData/insertRequestBAM'; 
 $route['uploadFile'] = 'triuneFile/uploadFile'; 
 
+/***** ICT ROUTES *****/
+$route['ictjrs/create']= 'triuneJRS/ICTCreateRequest';
+$route['ictjrs/getCreateConfirmation'] = 'triuneJRS/ICTCreateRequestConfirmation';
+$route['ictjrs/getCreatedRequest'] = 'triuneJRS/ICTCreatedRequest';
+$route['ictjrs/getMyRequestList'] = 'triuneJRS/ICTMyRequestList';
+$route['ictjrs/getNewRequestList'] = 'triuneJRS/ICTNewRequestList';
+$route['ictjrs/getNewRequestVerification'] = 'triuneJRS/ICTNewRequestVerification';
+
+$route['getjobClassification'] = 'triuneData/getjobClassification';
+$route['getICTJRSMyRequestList'] = 'triuneData/getICTJRSMyRequestList'; 
+$route['getICTJRSRequestList'] = 'triuneData/getICTJRSRequestList'; 
+
+$route['setRequestICT'] = 'triuneData/setRequestICT'; 
+$route['insertRequestICT'] = 'triuneData/insertRequestICT';
+$route['uploadICTFile'] = 'triuneICTFile/uploadICTFile';
 
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
